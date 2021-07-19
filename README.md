@@ -6,7 +6,7 @@
 
 ## Own contributions
 
-This repository contains the code I wrote for my 2021 Summer of Code project, in team PyRated, at IITB. For the complete project, please click here.
+This repository contains the code I wrote for my 2021 Summer of Code project, in team PyRated, at IITB. For the complete project, please click here - https://github.com/Team-PyRated/PyRated.
 
 NOTE: Few of these code files will work on their own - most import from other files only present in the complete project repository.
 

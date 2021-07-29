@@ -2,11 +2,57 @@ import subprocess
 import re
 from Multi_Layer_Comparison import multiLayerComparison, indentComparison, varAndOperCount, functionSignatureComp, exe_comp, ksc, ASTmatch, BOWComparison
 
+## TEST DATASET OR DATASET3
+which_test = 0 # 1 for DATASET, 0 FOR DATASET3
+
+if which_test == 0:
+    with open('truth.txt', 'r') as f:
+        plag_files_str = f.read()
+    #print("%r"%plag_files_str)
+    plag_files = plag_files_str.split('- ')
+    plag_files.pop(0)
+    for i in range(len(plag_files)):
+        plag_files[i] = plag_files[i].split('\n')
+        plag_files[i].pop()
+        try:
+            t = [plag_files[i][0]]
+        except:
+            print(plag_files)
+            assert Error
+        for x in plag_files[i][1:]:
+            t.append(x.split(','))
+        plag_files[i] = t
+    
+    data_folder = 'dataset3'
+
+elif which_test == 1:
+    with open('truth2.txt', 'r') as f:
+        plag_files_str = f.read()
+    #print("%r"%plag_files_str)
+    plag_files = plag_files_str.split('- ')
+
+    i=0
+    while i < len(plag_files):
+        if re.match('B', plag_files[i]) == None:
+            plag_files.pop(i)
+            i-=1
+        else:
+            plag_files[i] = plag_files[i].split('\n')
+            plag_files[i].pop()
+            t = [plag_files[i][0], re.sub('/','_',plag_files[i][0])]
+            for x in plag_files[i][1:]:
+                t.append(x.split(','))
+            plag_files[i] = t
+        i+=1
+        
+        data_folder = 'dataset2'
+
+
 
 functions = ["multiLayerComparison","BOWComparison","indentComparison","varAndOperCount","functionSignatureComp","keywordSeqCom","exe_comp", "ASTmatch"]
 n_funcs = len(functions)
-start = 0
-end = start+8
+start = 0 if which_test==0 else 1
+end = start + (n_funcs if which_test==0 else 5)
 
 def func_num(x, f1, f2):
     if x==0: return multiLayerComparison(f1,f2,1)
@@ -18,31 +64,15 @@ def func_num(x, f1, f2):
     elif x==6: return exe_comp(f1,f2)
     elif x==7: return ASTmatch(f1,f2)
 
-with open('truth2.txt', 'r') as f:
-	plag_files_str = f.read()
-#print("%r"%plag_files_str)
-plag_files = plag_files_str.split('- ')
-plag_files.pop(0)
-for i in range(len(plag_files)):
-    plag_files[i] = plag_files[i].split('\n')
-    plag_files[i].pop()
-    try:
-        t = [plag_files[i][0]]
-    except:
-        print(plag_files)
-        assert Error
-    for x in plag_files[i][1:]:
-        t.append(x.split(','))
-    plag_files[i] = t
 
 c_pos,c_neg, f_pos, f_neg, error, avg_plag, avg_nplag = [0 for i in range(n_funcs)], [0 for i in range(n_funcs)], [0 for i in range(n_funcs)], [0 for i in range(n_funcs)], [0 for i in range(n_funcs)], [0 for i in range(n_funcs)], [0 for i in range(n_funcs)]
 
-thresholds = [None, 65, 65, 65, 75, 85, 85, 45]
-data_folder = 'dataset3'
+thresholds = [None, 65, 60, 60, 60, 85, 80, 45]
+
 
 for assignment in plag_files:
     
-    folder = assignment[0]
+    folder = assignment[which_test]
     #print(folder)
     
     process_list_files = subprocess.run(f"ls {data_folder}/{folder}", shell=True, executable='/bin/bash', stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -101,7 +131,7 @@ for assignment in plag_files:
                             f_pos[v] += 1
                     
                 except ZeroDivisionError:
-                    print(functions[v],folder, x, y, '/0')
+                    print(functions[v],folder, x, y, '/0 Error')
                     error[v] += 1
                 '''
                 except:
@@ -115,7 +145,7 @@ for i in range(start, end):
         perc[i] = 100*(c_pos[i] + c_neg[i])/(c_pos[i] + c_neg[i]+f_pos[i]+f_neg[i])
         perc_plag[i] = 100*c_pos[i]/(c_pos[i]+f_neg[i])
         perc_nplag[i] = 100*c_neg[i]/(c_neg[i]+f_pos[i])
-        print(f"{functions[i]}: {perc_plag[i]}% of plag pairs and {perc_nplag[i]}% of non-plag pairs correctly identified. Tested {c_pos[i] + c_neg[i]+f_pos[i]+f_neg[i]} pairs. {error[i]} pairs gave an error.")
+        print(f"{functions[i]}: {perc_plag[i]}% of {c_pos[i]+f_neg[i]} plag pairs and {perc_nplag[i]}% of {c_neg[i]+f_pos[i]} non-plag pairs correctly identified. Tested {c_pos[i] + c_neg[i]+f_pos[i]+f_neg[i]} pairs. {error[i]} pairs gave an error.")
         if i!=0:
             print(f"On plag pairs, avg perc match was {avg_plag[i]/(c_pos[i] + f_neg[i])}%, and on non-plag pairs, it was {avg_nplag[i]/(c_neg[i]+f_pos[i])}%.")
         print("\n")

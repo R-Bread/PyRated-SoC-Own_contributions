@@ -45,4 +45,4 @@ Part of the code in this file such as the key result function and the optional a
 
 ## Code Pruning
 
-Initially written to remove comments and unused functions from python and c++ code files (for Python as well, because initially we had planned to write the detector for Python). Not directly imported anymore, but the regex code from this was directly used in the final project result.
+Initially written to remove comments and unused functions from python and c++ code files (for Python as well, because initially we had planned to write the detector for Python). Not directly imported anymore, but the regex code from this was directly used in the final project result. 
